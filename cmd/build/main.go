@@ -16,5 +16,14 @@
 
 package main
 
+import (
+	"os"
+
+	"github.com/paketo-buildpacks/image-labels/labels"
+	"github.com/paketo-buildpacks/libpak"
+	"github.com/paketo-buildpacks/libpak/bard"
+)
+
 func main() {
+	libpak.Build(labels.Build{Logger: bard.NewLogger(os.Stdout)})
 }

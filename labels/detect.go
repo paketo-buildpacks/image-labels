@@ -14,13 +14,42 @@
  * limitations under the License.
  */
 
-package main
+package labels
 
 import (
-	"github.com/paketo-buildpacks/image-labels/labels"
-	"github.com/paketo-buildpacks/libpak"
+	"os"
+
+	"github.com/buildpacks/libcnb"
 )
 
-func main() {
-	libpak.Detect(labels.Detect{})
+type Detect struct{}
+
+func (Detect) Detect(context libcnb.DetectContext) (libcnb.DetectResult, error) {
+	var pass bool
+
+	for k, _ := range Labels {
+		_, ok := os.LookupEnv(k)
+		pass = pass || ok
+	}
+
+	_, ok := os.LookupEnv("BP_IMAGE_LABELS")
+	pass = pass || ok
+
+	if !pass {
+		return libcnb.DetectResult{Pass: false}, nil
+	}
+
+	return libcnb.DetectResult{
+		Pass: true,
+		Plans: []libcnb.BuildPlan{
+			{
+				Provides: []libcnb.BuildPlanProvide{
+					{Name: "image-labels"},
+				},
+				Requires: []libcnb.BuildPlanRequire{
+					{Name: "image-labels"},
+				},
+			},
+		},
+	}, nil
 }

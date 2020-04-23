@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-package main
+package labels_test
 
 import (
-	"github.com/paketo-buildpacks/image-labels/labels"
-	"github.com/paketo-buildpacks/libpak"
+	"testing"
+
+	"github.com/sclevine/spec"
+	"github.com/sclevine/spec/report"
 )
 
-func main() {
-	libpak.Detect(labels.Detect{})
+func TestUnit(t *testing.T) {
+	suite := spec.New("labels", spec.Report(report.Terminal{}))
+	suite("Build", testBuild)
+	suite("Detect", testDetect)
+	suite.Run(t)
 }
+
