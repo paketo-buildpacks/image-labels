@@ -18,11 +18,11 @@ package labels
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/buildpacks/libcnb"
 	"github.com/mattn/go-shellwords"
+	"github.com/paketo-buildpacks/libpak"
 	"github.com/paketo-buildpacks/libpak/bard"
 )
 
@@ -32,20 +32,20 @@ type Build struct {
 
 func (b Build) Build(context libcnb.BuildContext) (libcnb.BuildResult, error) {
 	b.Logger.Title(context.Buildpack)
-	b.Logger.Body(bard.FormatUserConfig("BP_IMAGE_LABELS", "arbitrary image labels", "<none>"))
-	for k, v := range Labels {
-		b.Logger.Body(bard.FormatUserConfig(k, fmt.Sprintf("the %s image label", v), "<none>"))
-	}
-
 	result := libcnb.BuildResult{}
 
+	cr, err := libpak.NewConfigurationResolver(context.Buildpack, &b.Logger)
+	if err != nil {
+		return libcnb.BuildResult{}, fmt.Errorf("unable to create configuration resolver\n%w", err)
+	}
+
 	for k, v := range Labels {
-		if s, ok := os.LookupEnv(k); ok {
+		if s, ok := cr.Resolve(k); ok {
 			result.Labels = append(result.Labels, libcnb.Label{Key: v, Value: s})
 		}
 	}
 
-	if s, ok := os.LookupEnv("BP_IMAGE_LABELS"); ok {
+	if s, ok := cr.Resolve("BP_IMAGE_LABELS"); ok {
 		words, err := shellwords.Parse(s)
 		if err != nil {
 			return libcnb.BuildResult{}, fmt.Errorf("unable to parse %s\n%w", s, err)
