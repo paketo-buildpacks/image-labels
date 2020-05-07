@@ -17,22 +17,28 @@
 package labels
 
 import (
-	"os"
+	"fmt"
 
 	"github.com/buildpacks/libcnb"
+	"github.com/paketo-buildpacks/libpak"
 )
 
 type Detect struct{}
 
 func (Detect) Detect(context libcnb.DetectContext) (libcnb.DetectResult, error) {
+	cr, err := libpak.NewConfigurationResolver(context.Buildpack, nil)
+	if err != nil {
+		return libcnb.DetectResult{}, fmt.Errorf("unable to create configuration resolver\n%w", err)
+	}
+
 	var pass bool
 
 	for k, _ := range Labels {
-		_, ok := os.LookupEnv(k)
+		_, ok := cr.Resolve(k)
 		pass = pass || ok
 	}
 
-	_, ok := os.LookupEnv("BP_IMAGE_LABELS")
+	_, ok := cr.Resolve("BP_IMAGE_LABELS")
 	pass = pass || ok
 
 	if !pass {
