@@ -29,54 +29,67 @@ id = "org.cloudfoundry.stacks.cflinuxfs3"
 [[metadata.configurations]]
 name        = "BP_IMAGE_LABELS"
 description = "arbitrary image labels"
+build       = true
 
 [[metadata.configurations]]
 name        = "BP_OCI_AUTHORS"
 description = "the org.opencontainers.image.authors image label"
+build       = true
 
 [[metadata.configurations]]
 name        = "BP_OCI_CREATED"
 description = "the org.opencontainers.image.created image label"
+build       = true
 
 [[metadata.configurations]]
 name        = "BP_OCI_DESCRIPTION"
 description = "the org.opencontainers.image.description image label"
+build       = true
 
 [[metadata.configurations]]
 name        = "BP_OCI_DOCUMENTATION"
 description = "the org.opencontainers.image.documentation image label"
+build       = true
 
 [[metadata.configurations]]
 name        = "BP_OCI_LICENSES"
 description = "the org.opencontainers.image.licenses image label"
+build       = true
 
 [[metadata.configurations]]
 name        = "BP_OCI_REF_NAME"
 description = "the org.opencontainers.image.ref.name image label"
+build       = true
 
 [[metadata.configurations]]
 name        = "BP_OCI_REVISION"
 description = "the org.opencontainers.image.revision image label"
+build       = true
 
 [[metadata.configurations]]
 name        = "BP_OCI_SOURCE"
 description = "the org.opencontainers.image.revision image label"
+build       = true
 
 [[metadata.configurations]]
 name        = "BP_OCI_TITLE"
 description = "the org.opencontainers.image.title image label"
+build       = true
 
 [[metadata.configurations]]
 name        = "BP_OCI_URL"
 description = "the org.opencontainers.image.url image label"
+build       = true
 
 [[metadata.configurations]]
 name        = "BP_OCI_VENDOR"
 description = "the org.opencontainers.image.vendor image label"
+build       = true
 
 [[metadata.configurations]]
 name        = "BP_OCI_VERSION"
 description = "the org.opencontainers.image.version image label"
+build       = true
 
 [metadata]
 pre-package   = "scripts/build.sh"
