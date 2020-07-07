@@ -23,8 +23,9 @@ import (
 
 	"github.com/buildpacks/libcnb"
 	. "github.com/onsi/gomega"
-	"github.com/paketo-buildpacks/image-labels/labels"
 	"github.com/sclevine/spec"
+
+	"github.com/paketo-buildpacks/image-labels/labels"
 )
 
 func testBuild(t *testing.T, context spec.G, it spec.S) {
