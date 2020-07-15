@@ -29,4 +29,3 @@ func TestUnit(t *testing.T) {
 	suite("Detect", testDetect)
 	suite.Run(t)
 }
-
