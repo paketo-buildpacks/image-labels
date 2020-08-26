@@ -6,7 +6,7 @@ This buildpack allows for the configuration of both [OCI-specified][o] labels wi
 [o]: https://github.com/opencontainers/image-spec/blob/master/annotations.md#pre-defined-annotation-keys
 
 ## Behavior
-This buildpack will participate any of the following conditions are met
+This buildpack will participate if any of the following conditions are met
 
 * `$BP_IMAGE_LABELS` is set
 * `$BP_OCI_AUTHORS` is set
