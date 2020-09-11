@@ -24,7 +24,7 @@ var Labels = map[string]string{
 	"BP_OCI_LICENSES":      "org.opencontainers.image.licenses",
 	"BP_OCI_REF_NAME":      "org.opencontainers.image.ref.name",
 	"BP_OCI_REVISION":      "org.opencontainers.image.revision",
-	"BP_OCI_SOURCE":        "org.opencontainers.image.revision",
+	"BP_OCI_SOURCE":        "org.opencontainers.image.source",
 	"BP_OCI_TITLE":         "org.opencontainers.image.title",
 	"BP_OCI_URL":           "org.opencontainers.image.url",
 	"BP_OCI_VENDOR":        "org.opencontainers.image.vendor",
