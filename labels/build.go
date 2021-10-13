@@ -19,9 +19,9 @@ package labels
 import (
 	"fmt"
 	"strings"
+	"unicode"
 
 	"github.com/buildpacks/libcnb"
-	"github.com/mattn/go-shellwords"
 	"github.com/paketo-buildpacks/libpak"
 	"github.com/paketo-buildpacks/libpak/bard"
 )
@@ -46,16 +46,50 @@ func (b Build) Build(context libcnb.BuildContext) (libcnb.BuildResult, error) {
 	}
 
 	if s, ok := cr.Resolve("BP_IMAGE_LABELS"); ok {
-		words, err := shellwords.Parse(s)
+		err, words := parseLabels(s)
 		if err != nil {
-			return libcnb.BuildResult{}, fmt.Errorf("unable to parse %s\n%w", s, err)
+			return libcnb.BuildResult{}, err
 		}
-
-		for _, word := range words {
-			parts := strings.Split(word, "=")
-			result.Labels = append(result.Labels, libcnb.Label{Key: parts[0], Value: parts[1]})
+		for name, val := range words {
+			result.Labels = append(result.Labels, libcnb.Label{Key: name, Value: val})
 		}
 	}
 
 	return result, nil
+}
+
+func parseLabels(args string) (error, map[string]string) {
+	lastQuote := rune(0)
+	f := func(c rune) bool {
+		switch {
+		case c == lastQuote:
+			lastQuote = rune(0)
+			return false
+		case lastQuote != rune(0):
+			return false
+		case unicode.In(c, unicode.Quotation_Mark):
+			lastQuote = c
+			return false
+		default:
+			return unicode.IsSpace(c)
+
+		}
+	}
+
+	// splitting string by space but considering quoted section
+	items := strings.FieldsFunc(args, f)
+
+	// create and fill the map
+	m := make(map[string]string)
+	for _, item := range items {
+		item = strings.ReplaceAll(item, "\"", "")
+		item = strings.ReplaceAll(item, "'", "")
+		x := strings.Split(item, "=")
+		if len(x) == 1 { // Missing value
+			return fmt.Errorf("unable to parse labels: %s", item), nil
+		}
+
+		m[x[0]] = x[1]
+	}
+	return nil, m
 }
