@@ -67,7 +67,7 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 		})
 	})
 
-	for k, _ := range labels.Labels {
+	for k := range labels.Labels {
 		context(fmt.Sprintf("$%s", k), func() {
 
 			it.Before(func() {

@@ -18,10 +18,10 @@ package labels
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/buildpacks/libcnb"
-	"github.com/mattn/go-shellwords"
 	"github.com/paketo-buildpacks/libpak"
 	"github.com/paketo-buildpacks/libpak/bard"
 )
@@ -46,16 +46,174 @@ func (b Build) Build(context libcnb.BuildContext) (libcnb.BuildResult, error) {
 	}
 
 	if s, ok := cr.Resolve("BP_IMAGE_LABELS"); ok {
-		words, err := shellwords.Parse(s)
+		words, err := ParseLabels(s)
 		if err != nil {
 			return libcnb.BuildResult{}, fmt.Errorf("unable to parse %s\n%w", s, err)
 		}
 
-		for _, word := range words {
-			parts := strings.Split(word, "=")
-			result.Labels = append(result.Labels, libcnb.Label{Key: parts[0], Value: parts[1]})
+		keys := []string{}
+		for k := range words {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+
+		for _, key := range keys {
+			result.Labels = append(result.Labels, libcnb.Label{Key: key, Value: words[key]})
 		}
 	}
 
 	return result, nil
+}
+
+// ReadToNext rune in string consuming the character
+//
+// It returns a string of read characters, a string of the remaining characters
+// and the specific rune that was read.
+func ReadToNext(buf string, chars string) (string, string, rune) {
+	i := strings.IndexAny(buf, chars)
+
+	if i > 0 && i < len(buf) {
+		return buf[0:i], buf[i+1:], rune(buf[i])
+	}
+	if i > 0 && i == len(buf) {
+		return buf[0 : i-1], "", rune(buf[i])
+	}
+	if i == 0 && i < len(buf) {
+		return "", buf[i+1:], rune(buf[i])
+	}
+	return buf, "", rune(0)
+}
+
+// ReadKey from the string
+//
+// A key is either all words before the equals sign, or a single or
+// double quoted word group, again before an equals sign.
+//
+// If key is quoted and there are characters between the ending quote
+// and the equals sign, those are discarded.
+//
+// It returns the key, a string with the remainder of the characters
+// or an error.
+func ReadKey(buf string) (string, string, error) {
+	item := ""
+	needClosingQuote := false
+	key, rest, ch := ReadToNext(buf, `"'=`)
+	for {
+		// unescape, escaped single and double quotes
+		if (ch == '"' || ch == '\'') && strings.HasSuffix(key, `\`) {
+			key = fmt.Sprintf("%s%c", strings.TrimSuffix(key, `\`), ch)
+			ch = '\\'
+		}
+
+		item += key
+
+		// end quote
+		if (ch == '"' || ch == '\'') && needClosingQuote {
+			// throw out anything between closing quote and equals sign
+			_, rest, _ = ReadToNext(rest, `=`)
+			return item, rest, nil
+		}
+
+		// beginning quote
+		if (ch == '"' || ch == '\'') && !needClosingQuote {
+			needClosingQuote = true
+		}
+
+		// end of key or no more data
+		if (ch == '=' || rest == "") && needClosingQuote {
+			return item, rest, fmt.Errorf("unable to find a closing quote")
+		} else if ch == '=' || rest == "" {
+			return item, rest, nil
+		}
+
+		key, rest, ch = ReadToNext(rest, `"'=`)
+	}
+}
+
+// ReadValue from the string
+//
+// A value is either all words up to the first space character, or a
+// single or double quoted word group, again before the first space.
+//
+// If value is quoted and there are characters between the ending quote
+// and the equals sign, those are discarded.
+//
+// It returns the value, a string with the remainder of the characters
+// or an error.
+func ReadValue(buf string) (string, string, error) {
+	item := ""
+	needClosingQuote := false
+	value, rest, ch := ReadToNext(buf, `"' `)
+	for {
+		// unescape, escaped single and double quotes
+		if (ch == '"' || ch == '\'') && strings.HasSuffix(value, `\`) {
+			value = fmt.Sprintf("%s%c", strings.TrimSuffix(value, `\`), ch)
+			ch = '\\'
+		}
+
+		item += value
+
+		// end quote
+		if (ch == '"' || ch == '\'') && needClosingQuote {
+			// throw out anything between closing quote and equals sign
+			_, rest, _ = ReadToNext(rest, ` `)
+			return item, rest, nil
+		}
+
+		// beginning quote
+		if (ch == '"' || ch == '\'') && !needClosingQuote {
+			needClosingQuote = true
+		}
+
+		// successful end of value
+		if ch == ' ' && !needClosingQuote {
+			return item, rest, nil
+		}
+
+		// embedded space
+		if ch == ' ' && needClosingQuote {
+			item += " "
+		}
+
+		// end of data buffer
+		if rest == "" && needClosingQuote {
+			return item, rest, fmt.Errorf("unable to find a closing quote")
+		} else if rest == "" {
+			return item, rest, nil
+		}
+
+		value, rest, ch = ReadToNext(rest, `"' `)
+	}
+}
+
+func ParseLabels(rest string) (map[string]string, error) {
+	m := make(map[string]string)
+
+	var (
+		key, val string
+		err      error
+		pos      int
+	)
+
+	for {
+		key, rest, err = ReadKey(rest)
+		pos += len(key) + 1
+
+		if err != nil {
+			return nil, fmt.Errorf("unable to read key ending at char %d\n%w", pos, err)
+		}
+
+		val, rest, err = ReadValue(rest)
+		pos += len(val) + 1
+
+		if err != nil {
+			return nil, fmt.Errorf("unable to read value ending at char %d\n%w", pos, err)
+		}
+
+		m[key] = val
+
+		if rest == "" {
+			return m, nil
+		}
+	}
 }
