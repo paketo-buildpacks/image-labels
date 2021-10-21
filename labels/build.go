@@ -109,8 +109,10 @@ func ReadKey(buf string) (string, string, error) {
 
 		// end quote
 		if (ch == '"' || ch == '\'') && needClosingQuote {
-			// throw out anything between closing quote and equals sign
-			_, rest, _ = ReadToNext(rest, `=`)
+			invalid, rest, _ := ReadToNext(rest, `=`)
+			if len(strings.TrimSpace(invalid)) > 0 {
+				return "", rest, fmt.Errorf("unable to have characters after a trailing quote")
+			}
 			return item, rest, nil
 		}
 
@@ -121,7 +123,7 @@ func ReadKey(buf string) (string, string, error) {
 
 		// end of key or no more data
 		if (ch == '=' || rest == "") && needClosingQuote {
-			return item, rest, fmt.Errorf("unable to find a closing quote")
+			return "", rest, fmt.Errorf("unable to find a closing quote")
 		} else if ch == '=' || rest == "" {
 			return item, rest, nil
 		}
@@ -155,8 +157,10 @@ func ReadValue(buf string) (string, string, error) {
 
 		// end quote
 		if (ch == '"' || ch == '\'') && needClosingQuote {
-			// throw out anything between closing quote and equals sign
-			_, rest, _ = ReadToNext(rest, ` `)
+			invalid, rest, _ := ReadToNext(rest, ` `)
+			if len(strings.TrimSpace(invalid)) > 0 {
+				return "", rest, fmt.Errorf("unable to have characters after a trailing quote")
+			}
 			return item, rest, nil
 		}
 
@@ -177,7 +181,7 @@ func ReadValue(buf string) (string, string, error) {
 
 		// end of data buffer
 		if rest == "" && needClosingQuote {
-			return item, rest, fmt.Errorf("unable to find a closing quote")
+			return "", rest, fmt.Errorf("unable to find a closing quote")
 		} else if rest == "" {
 			return item, rest, nil
 		}
@@ -196,17 +200,26 @@ func ParseLabels(rest string) (map[string]string, error) {
 	)
 
 	for {
+		before := len(rest)
 		key, rest, err = ReadKey(rest)
-		pos += len(key) + 1
+		pos += before - len(rest)
 
 		if err != nil {
-			return nil, fmt.Errorf("unable to read key ending at char %d\n%w", pos, err)
+			return nil, fmt.Errorf("unable to read key ending at char %d\n%w", pos-1, err)
 		}
 
+		if len(key) == 0 {
+			return nil, fmt.Errorf("unable to have empty key ending at char %d", pos-1)
+		}
+
+		before = len(rest)
 		val, rest, err = ReadValue(rest)
-		pos += len(val) + 1
+		pos += before - len(rest)
 
 		if err != nil {
+			if len(rest) > 0 {
+				pos -= 1
+			}
 			return nil, fmt.Errorf("unable to read value ending at char %d\n%w", pos, err)
 		}
 

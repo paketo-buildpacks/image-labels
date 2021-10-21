@@ -268,7 +268,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 		it("parses a complex label", func() {
 			assertMap(`some-label=(example)value some-label-2=""hi there" test='hi'`,
-				nil, "unable to read key ending at char 51")
+				nil, "unable to read value ending at char 43\nunable to have characters after a trailing quote")
 		})
 
 		it("parses with embedded equal signs", func() {
@@ -276,6 +276,28 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 				map[string]string{"foo": "bar=baz"}, "")
 			assertMap(`foo="bar=baz"`,
 				map[string]string{"foo": "bar=baz"}, "")
+		})
+
+		it("fails on an empty key", func() {
+			assertMap(`""=bar`,
+				nil, "unable to have empty key ending at char 2")
+		})
+
+		it("fails if characters after a quote", func() {
+			assertMap(`"foo"junk=bar`,
+				nil, "unable to read key ending at char 9\nunable to have characters after a trailing quote")
+			assertMap(`foo="bar"junk`,
+				nil, "unable to read value ending at char 13\nunable to have characters after a trailing quote")
+		})
+
+		it("parses complicated statement", func() {
+			assertMap(`some-label=(example)value some-label-2=""hi t""here="" test=\'hi\'`,
+				nil, "unable to read value ending at char 43\nunable to have characters after a trailing quote")
+		})
+
+		it("parses complicated statement", func() {
+			assertMap(`some-label=(example)value some-label-2="hi t"here="" test=\'hi\'`,
+				nil, "unable to read value ending at char 52\nunable to have characters after a trailing quote")
 		})
 	})
 
