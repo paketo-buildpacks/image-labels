@@ -33,7 +33,7 @@ func (Detect) Detect(context libcnb.DetectContext) (libcnb.DetectResult, error) 
 
 	var pass bool
 
-	for k, _ := range Labels {
+	for k := range Labels {
 		_, ok := cr.Resolve(k)
 		pass = pass || ok
 	}
