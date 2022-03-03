@@ -22,7 +22,7 @@ import (
 	"github.com/paketo-buildpacks/libpak"
 	"github.com/paketo-buildpacks/libpak/bard"
 
-	"github.com/paketo-buildpacks/image-labels/labels"
+	"github.com/paketo-buildpacks/image-labels/v4/labels"
 )
 
 func main() {
