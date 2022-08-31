@@ -19,7 +19,7 @@ api = "0.7"
   homepage = "https://github.com/paketo-buildpacks/image-labels"
   id = "paketo-buildpacks/image-labels"
   keywords = ["image-labels", "labels"]
-  name = "Paketo Image Labels Buildpack"
+  name = "Paketo Buildpack for Image Labels"
   version = "{{.version}}"
   sbom-formats = ["application/vnd.cyclonedx+json", "application/vnd.syft+json"]
 

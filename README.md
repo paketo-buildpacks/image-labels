@@ -1,5 +1,5 @@
 # `gcr.io/paketo-buildpacks/image-labels`
-The Paketo Image Labels Buildpack is a Cloud Native Buildpack that enables configuration of labels on the created image.
+The Paketo Buildpack for Image Labels is a Cloud Native Buildpack that enables configuration of labels on the created image.
 
 This buildpack allows for the configuration of both [OCI-specified][o] labels with short environment variable names, as well as arbitrary labels using a space-delimited syntax in a single environment variable.
 
