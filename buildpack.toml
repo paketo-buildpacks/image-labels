@@ -73,7 +73,7 @@ api = "0.7"
 
   [[metadata.configurations]]
     build = true
-    description = "the org.opencontainers.image.revision image label"
+    description = "the org.opencontainers.image.source image label"
     name = "BP_OCI_SOURCE"
 
   [[metadata.configurations]]
