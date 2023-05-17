@@ -18,6 +18,8 @@ package labels
 
 import (
 	"fmt"
+	"github.com/paketo-buildpacks/libpak/bard"
+	"os"
 
 	"github.com/buildpacks/libcnb"
 	"github.com/paketo-buildpacks/libpak"
@@ -26,7 +28,8 @@ import (
 type Detect struct{}
 
 func (Detect) Detect(context libcnb.DetectContext) (libcnb.DetectResult, error) {
-	cr, err := libpak.NewConfigurationResolver(context.Buildpack, nil)
+	l := bard.NewLogger(os.Stdout)
+	cr, err := libpak.NewConfigurationResolver(context.Buildpack, &l)
 	if err != nil {
 		return libcnb.DetectResult{}, fmt.Errorf("unable to create configuration resolver\n%w", err)
 	}
@@ -42,6 +45,7 @@ func (Detect) Detect(context libcnb.DetectContext) (libcnb.DetectResult, error) 
 	pass = pass || ok
 
 	if !pass {
+		l.Logger.Info("SKIPPED: No supported environment variables were set")
 		return libcnb.DetectResult{Pass: false}, nil
 	}
 
