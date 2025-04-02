@@ -1,4 +1,7 @@
-# `paketo-buildpacks/image-labels`
+# Paketo Buildpack for Image Labels
+
+## Buildpack ID: `paketo-buildpacks/image-labels`
+## Registry URLs: `docker.io/paketobuildpacks/image-labels`
 The Paketo Buildpack for Image Labels is a Cloud Native Buildpack that enables configuration of labels on the created image.
 
 This buildpack allows for the configuration of both [OCI-specified][o] labels with short environment variable names, as well as arbitrary labels using a space-delimited syntax in a single environment variable.
