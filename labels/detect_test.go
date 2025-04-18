@@ -33,7 +33,7 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 	var (
 		Expect = NewWithT(t).Expect
 
-		logger log.Logger
+		logger log.Logger = log.NewPaketoLogger(os.Stdout)
 		ctx    libcnb.DetectContext
 	)
 

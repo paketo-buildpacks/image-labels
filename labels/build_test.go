@@ -18,6 +18,7 @@ package labels_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/buildpacks/libcnb/v2"
@@ -32,7 +33,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 	var (
 		Expect = NewWithT(t).Expect
 
-		logger log.Logger
+		logger log.Logger = log.NewPaketoLogger(os.Stdout)
 		ctx    libcnb.BuildContext
 	)
 
@@ -52,7 +53,6 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 	}
 
 	context("$BP_IMAGE_LABELS", func() {
-
 		it.Before(func() {
 			t.Setenv("BP_IMAGE_LABELS", `alpha=bravo charlie="delta echo" foxtrot='golf hotel'`)
 		})
@@ -64,6 +64,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 					{Key: "charlie", Value: "delta echo"},
 					{Key: "foxtrot", Value: "golf hotel"},
 				},
+				PersistentMetadata: map[string]interface{}{},
 			}))
 		})
 	})
@@ -80,6 +81,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 					Labels: []libcnb.Label{
 						{Key: v, Value: "test-value"},
 					},
+					PersistentMetadata: map[string]interface{}{},
 				}))
 			})
 		})
