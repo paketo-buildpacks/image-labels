@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,48 +18,52 @@ package labels
 
 import (
 	"fmt"
-	"github.com/paketo-buildpacks/libpak/bard"
-	"os"
 
-	"github.com/buildpacks/libcnb"
-	"github.com/paketo-buildpacks/libpak"
+	"github.com/paketo-buildpacks/libpak/v2/log"
+
+	"github.com/buildpacks/libcnb/v2"
+	"github.com/paketo-buildpacks/libpak/v2"
 )
 
-type Detect struct{}
+func NewDetect(l log.Logger) libcnb.DetectFunc {
+	return func(context libcnb.DetectContext) (libcnb.DetectResult, error) {
+		md, err := libpak.NewBuildModuleMetadata(context.Buildpack.Metadata)
+		if err != nil {
+			return libcnb.DetectResult{}, fmt.Errorf("unable to create build module metadata\n%w", err)
+		}
 
-func (Detect) Detect(context libcnb.DetectContext) (libcnb.DetectResult, error) {
-	l := bard.NewLogger(os.Stdout)
-	cr, err := libpak.NewConfigurationResolver(context.Buildpack, &l)
-	if err != nil {
-		return libcnb.DetectResult{}, fmt.Errorf("unable to create configuration resolver\n%w", err)
-	}
+		cr, err := libpak.NewConfigurationResolver(md)
+		if err != nil {
+			return libcnb.DetectResult{}, fmt.Errorf("unable to create configuration resolver\n%w", err)
+		}
 
-	var pass bool
+		var pass bool
 
-	for k := range Labels {
-		_, ok := cr.Resolve(k)
+		for k := range Labels {
+			_, ok := cr.Resolve(k)
+			pass = pass || ok
+		}
+
+		_, ok := cr.Resolve("BP_IMAGE_LABELS")
 		pass = pass || ok
-	}
 
-	_, ok := cr.Resolve("BP_IMAGE_LABELS")
-	pass = pass || ok
+		if !pass {
+			l.Body("SKIPPED: No supported environment variables were set")
+			return libcnb.DetectResult{Pass: false}, nil
+		}
 
-	if !pass {
-		l.Logger.Info("SKIPPED: No supported environment variables were set")
-		return libcnb.DetectResult{Pass: false}, nil
-	}
-
-	return libcnb.DetectResult{
-		Pass: true,
-		Plans: []libcnb.BuildPlan{
-			{
-				Provides: []libcnb.BuildPlanProvide{
-					{Name: "image-labels"},
-				},
-				Requires: []libcnb.BuildPlanRequire{
-					{Name: "image-labels"},
+		return libcnb.DetectResult{
+			Pass: true,
+			Plans: []libcnb.BuildPlan{
+				{
+					Provides: []libcnb.BuildPlanProvide{
+						{Name: "image-labels"},
+					},
+					Requires: []libcnb.BuildPlanRequire{
+						{Name: "image-labels"},
+					},
 				},
 			},
-		},
-	}, nil
+		}, nil
+	}
 }
