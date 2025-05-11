@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,48 +21,51 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/buildpacks/libcnb"
-	"github.com/paketo-buildpacks/libpak"
-	"github.com/paketo-buildpacks/libpak/bard"
+	"github.com/buildpacks/libcnb/v2"
+	"github.com/paketo-buildpacks/libpak/v2"
+	"github.com/paketo-buildpacks/libpak/v2/log"
 )
 
-type Build struct {
-	Logger bard.Logger
-}
+func NewBuild(logger log.Logger) libcnb.BuildFunc {
+	return func(context libcnb.BuildContext) (libcnb.BuildResult, error) {
+		logger.Title(context.Buildpack.Info.Name, context.Buildpack.Info.Version, context.Buildpack.Info.Homepage)
+		result := libcnb.NewBuildResult()
 
-func (b Build) Build(context libcnb.BuildContext) (libcnb.BuildResult, error) {
-	b.Logger.Title(context.Buildpack)
-	result := libcnb.BuildResult{}
-
-	cr, err := libpak.NewConfigurationResolver(context.Buildpack, &b.Logger)
-	if err != nil {
-		return libcnb.BuildResult{}, fmt.Errorf("unable to create configuration resolver\n%w", err)
-	}
-
-	for k, v := range Labels {
-		if s, ok := cr.Resolve(k); ok {
-			result.Labels = append(result.Labels, libcnb.Label{Key: v, Value: s})
-		}
-	}
-
-	if s, ok := cr.Resolve("BP_IMAGE_LABELS"); ok {
-		words, err := ParseLabels(s)
+		md, err := libpak.NewBuildModuleMetadata(context.Buildpack.Metadata)
 		if err != nil {
-			return libcnb.BuildResult{}, fmt.Errorf("unable to parse %s\n%w", s, err)
+			return libcnb.BuildResult{}, fmt.Errorf("unable to create build module metadata\n%w", err)
 		}
 
-		keys := []string{}
-		for k := range words {
-			keys = append(keys, k)
+		cr, err := libpak.NewConfigurationResolver(md)
+		if err != nil {
+			return libcnb.BuildResult{}, fmt.Errorf("unable to create configuration resolver\n%w", err)
 		}
-		sort.Strings(keys)
 
-		for _, key := range keys {
-			result.Labels = append(result.Labels, libcnb.Label{Key: key, Value: words[key]})
+		for k, v := range Labels {
+			if s, ok := cr.Resolve(k); ok {
+				result.Labels = append(result.Labels, libcnb.Label{Key: v, Value: s})
+			}
 		}
+
+		if s, ok := cr.Resolve("BP_IMAGE_LABELS"); ok {
+			words, err := ParseLabels(s)
+			if err != nil {
+				return libcnb.BuildResult{}, fmt.Errorf("unable to parse %s\n%w", s, err)
+			}
+
+			keys := []string{}
+			for k := range words {
+				keys = append(keys, k)
+			}
+			sort.Strings(keys)
+
+			for _, key := range keys {
+				result.Labels = append(result.Labels, libcnb.Label{Key: key, Value: words[key]})
+			}
+		}
+
+		return result, nil
 	}
-
-	return result, nil
 }
 
 // ReadToNext rune in string consuming the character
