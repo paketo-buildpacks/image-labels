@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2018-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/buildpacks/libcnb"
+	"github.com/buildpacks/libcnb/v2"
 	. "github.com/onsi/gomega"
+	"github.com/paketo-buildpacks/libpak/v2/log"
 	"github.com/sclevine/spec"
 
 	"github.com/paketo-buildpacks/image-labels/v4/labels"
@@ -32,26 +33,21 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 	var (
 		Expect = NewWithT(t).Expect
 
+		logger log.Logger = log.NewPaketoLogger(os.Stdout)
 		ctx    libcnb.DetectContext
-		detect labels.Detect
 	)
 
 	it("fails without any interesting environment variables set", func() {
-		Expect(detect.Detect(ctx)).To(Equal(libcnb.DetectResult{Pass: false}))
+		Expect(labels.NewDetect(logger)(ctx)).To(Equal(libcnb.DetectResult{Pass: false}))
 	})
 
 	context("$BP_IMAGE_LABELS", func() {
-
 		it.Before(func() {
-			Expect(os.Setenv("BP_IMAGE_LABELS", "")).To(Succeed())
-		})
-
-		it.After(func() {
-			Expect(os.Unsetenv("BP_IMAGE_LABELS")).To(Succeed())
+			t.Setenv("BP_IMAGE_LABELS", "")
 		})
 
 		it("passes with $BP_IMAGE_LABELS", func() {
-			Expect(detect.Detect(ctx)).To(Equal(libcnb.DetectResult{
+			Expect(labels.NewDetect(logger)(ctx)).To(Equal(libcnb.DetectResult{
 				Pass: true,
 				Plans: []libcnb.BuildPlan{
 					{
@@ -69,7 +65,6 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 
 	for k := range labels.Labels {
 		context(fmt.Sprintf("$%s", k), func() {
-
 			it.Before(func() {
 				Expect(os.Setenv(k, "")).To(Succeed())
 			})
@@ -79,7 +74,7 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 			})
 
 			it(fmt.Sprintf("passes with $%s", k), func() {
-				Expect(detect.Detect(ctx)).To(Equal(libcnb.DetectResult{
+				Expect(labels.NewDetect(logger)(ctx)).To(Equal(libcnb.DetectResult{
 					Pass: true,
 					Plans: []libcnb.BuildPlan{
 						{
@@ -95,5 +90,4 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 			})
 		})
 	}
-
 }
