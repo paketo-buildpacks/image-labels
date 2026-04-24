@@ -5,7 +5,7 @@ go 1.26
 require (
 	github.com/buildpacks/libcnb/v2 v2.1.0
 	github.com/onsi/gomega v1.39.1
-	github.com/paketo-buildpacks/libpak/v2 v2.1.0
+	github.com/paketo-buildpacks/libpak/v2 v2.2.0
 	github.com/sclevine/spec v1.4.0
 )
 
@@ -19,10 +19,10 @@ require (
 	github.com/heroku/color v0.0.6 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
-	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mattn/go-isatty v0.0.21 // indirect
 	github.com/mitchellh/hashstructure/v2 v2.0.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/net v0.52.0 // indirect
-	golang.org/x/sys v0.42.0 // indirect
-	golang.org/x/text v0.35.0 // indirect
+	golang.org/x/net v0.53.0 // indirect
+	golang.org/x/sys v0.43.0 // indirect
+	golang.org/x/text v0.36.0 // indirect
 )
