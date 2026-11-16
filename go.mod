@@ -1,6 +1,6 @@
 module github.com/paketo-buildpacks/image-labels/v4
 
-go 1.27.3
+go 1.27.4
 
 require (
 	github.com/buildpacks/libcnb/v2 v2.1.0
